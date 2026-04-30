@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Install dependencies
         run: |
@@ -34,9 +36,6 @@ jobs:
             libopencv-dev \
             wget
 
-      - name: Install OpenCV
-        run: sudo apt-get install -y libopencv-dev
-
       - name: Download and install ONNX Runtime
         run: |
           cd /tmp
@@ -50,7 +49,7 @@ jobs:
       - name: Clone and build muduo
         run: |
           cd /tmp
-          git clone https://github.com/chenshuo/muduo.git
+          git clone --depth 1 https://github.com/chenshuo/muduo.git
           cd muduo
           sed -i 's/-Werror//g' CMakeLists.txt
           mkdir -p build && cd build
@@ -63,7 +62,7 @@ jobs:
       - name: Clone and build SimpleAmqpClient
         run: |
           cd /tmp
-          git clone https://github.com/alanxz/SimpleAmqpClient.git
+          git clone --depth 1 https://github.com/alanxz/SimpleAmqpClient.git
           cd SimpleAmqpClient
           mkdir -p build && cd build
           cmake ..
