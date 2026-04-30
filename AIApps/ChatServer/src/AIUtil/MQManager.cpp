@@ -13,7 +13,7 @@ MQManager::MQManager(size_t poolSize)
     
     for (size_t i = 0; i < poolSize_; ++i) {
         auto conn = std::make_shared<MQConn>();
-        conn->channel = AmqpClient::Channel::Create(rabbitmqHost, 5672, rabbitmqUser, rabbitmqPass, "/");
+        conn->channel = AmqpClient::Channel::Open(rabbitmqHost, 5672, rabbitmqUser, rabbitmqPass, "/");
         pool_.push_back(conn);
     }
 }
@@ -44,7 +44,7 @@ void RabbitMQThreadPool::shutdown() {
 
 void RabbitMQThreadPool::worker(int id) {
     try {
-        auto channel = AmqpClient::Channel::Create(rabbitmq_host_, 5672, rabbitmq_user_, rabbitmq_pass_, "/");
+        auto channel = AmqpClient::Channel::Open(rabbitmq_host_, 5672, rabbitmq_user_, rabbitmq_pass_, "/");
         channel->DeclareQueue(queue_name_, false, true, false, false);
         std::string consumer_tag = channel->BasicConsume(queue_name_, "", true, false, false);
 
