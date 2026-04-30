@@ -1,0 +1,26 @@
+{
+  "name": "CppAIService Development",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "app_dev",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [80, 8080],
+  "portsAttributes": {
+    "80": {
+      "label": "HTTP Server",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "extensions": [
+    "ms-vscode.cpptools",
+    "ms-vscode.cmake",
+    "ms-vscode.makefile-tools",
+    "WEBROWSER"
+  ],
+  "settings": {
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "cmake.configureOnOpen": true,
+    "terminal.integrated.defaultProfile.linux": "bash"
+  },
+  "postCreateCommand": "bash scripts/dev-setup.sh",
+  "initializeCommand": "bash scripts/dev-init.sh"
+}
