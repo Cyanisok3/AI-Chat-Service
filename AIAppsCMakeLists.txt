@@ -20,13 +20,13 @@ include_directories(
     ${OPENSSL_INCLUDE_DIR}
     ${CURL_INCLUDE_DIRS}
     /usr/include/opencv4          # OpenCV
-    /usr/local/onnxruntime-linux-aarch64-1.16.3/include  # ONNX Runtime
+    /usr/local/include  # ONNX Runtime
 )
 
 # 查找 ONNX Runtime（可选）
 find_library(ONNXRUNTIME_LIBRARY
     NAMES onnxruntime
-    PATHS /usr/local/onnxruntime-linux-aarch64-1.16.3/lib
+    PATHS /usr/local/lib
     RESULT_VARIABLE ONNXRUNTIME_FOUND
 )
 
@@ -69,7 +69,7 @@ target_link_libraries(http_server
 )
 
 # 如果库不在默认路径，添加链接目录
-link_directories(/usr/local/lib /usr/local/onnxruntime-linux-aarch64-1.16.3/lib)
+link_directories(/usr/local/lib)
 
 # 打印调试信息
 message(STATUS "Include directories:")

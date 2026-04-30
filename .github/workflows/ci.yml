@@ -30,7 +30,23 @@ jobs:
             mysql-client \
             libmysqlclient-dev \
             libcurl4-openssl-dev \
-            librabbitmq-dev
+            librabbitmq-dev \
+            libopencv-dev \
+            wget
+
+      - name: Install OpenCV
+        run: |
+          sudo apt-get install -y libopencv-dev opencv-python
+
+      - name: Download and install ONNX Runtime
+        run: |
+          cd /tmp
+          wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.16.3/onnxruntime-linux-x64-1.16.3.tgz
+          tar -xzf onnxruntime-linux-x64-1.16.3.tgz
+          sudo cp -r onnxruntime-linux-x64-1.16.3/include/* /usr/local/include/
+          sudo cp onnxruntime-linux-x64-1.16.3/lib/* /usr/local/lib/
+          sudo ldconfig
+          rm -rf onnxruntime-linux-x64-1.16.3*
 
       - name: Clone and build muduo
         run: |
