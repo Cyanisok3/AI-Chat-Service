@@ -2,7 +2,7 @@ name: CD - Docker Build & Push
 
 on:
   workflow_run:
-    workflows: ["CI - Build & Test"]
+    workflows: ["CI - Build & Test"] 
     types: [completed]
     branches: [main]
 

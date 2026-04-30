@@ -134,7 +134,7 @@ sudo ./simple_server
 登录界面  
 ![登录界面](images/image1.jpg)
 菜单界面  
-> 匹配玩家和退出游戏待开发中。。。 </br>
+> 匹配玩家和退出游戏待开发中。。 </br>
 
 ![菜单界面](images/image2.jpg)
 对战AI  

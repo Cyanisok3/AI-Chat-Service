@@ -29,10 +29,12 @@ RUN apt-get update && apt-get install -y \
     librabbitmq-dev \
     # CURL
     libcurl4-openssl-dev \
-    # ONNX Runtime
-    wget \
-    && wget https://github.com/microsoft/onnxruntime/releases/download/v1.16.3/onnxruntime-linux-aarch64-1.16.3.tgz -O /tmp/onnxruntime.tgz \
+    # ONNX Runtime (x64)
+    && wget https://github.com/microsoft/onnxruntime/releases/download/v1.16.3/onnxruntime-linux-x64-1.16.3.tgz -O /tmp/onnxruntime.tgz \
     && tar -xzf /tmp/onnxruntime.tgz -C /usr/local \
+    && cp -r /usr/local/onnxruntime-linux-x64-1.16.3/include/* /usr/local/include/ \
+    && cp /usr/local/onnxruntime-linux-x64-1.16.3/lib/* /usr/local/lib/ \
+    && rm -rf /usr/local/onnxruntime-linux-x64-1.16.3 \
     && rm /tmp/onnxruntime.tgz \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
