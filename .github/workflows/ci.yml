@@ -35,8 +35,7 @@ jobs:
             wget
 
       - name: Install OpenCV
-        run: |
-          sudo apt-get install -y libopencv-dev opencv-python
+        run: sudo apt-get install -y libopencv-dev
 
       - name: Download and install ONNX Runtime
         run: |
