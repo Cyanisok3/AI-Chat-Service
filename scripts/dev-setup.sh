@@ -10,8 +10,8 @@ echo "=== Building Project ==="
 mkdir -p build
 cd build
 
-# 配置项目
-cmake ..
+# Configure and build
+cmake .. -DBUILD_AI_APPS=ON -DBUILD_WEB_APPS=OFF
 
 # 编译
 make -j$(nproc)

@@ -1,10 +1,21 @@
-FROM ubuntu:22.04
+#===============================================================================
+# C++ AI Chat Service - Unified Dockerfile
+# Build:   docker build -t cpp-ai-service .
+# Dev:     docker run --rm -it -v $(pwd):/workspace cpp-ai-service bash
+# Prod:    docker run -d -p 8080:80 --name cpp-ai-service cpp-ai-service
+#===============================================================================
 
-# 设置环境变量
+ARG BUILD_TYPE=release
+FROM ubuntu:22.04 AS base
+
 ENV DEBIAN_FRONTEND=noninteractive
+ENV RABBITMQ_HOST=rabbitmq
+ENV MYSQL_HOST=mysql
+ENV HTTP_PORT=80
 
-# 安装基础工具和依赖
-RUN apt-get update && apt-get install -y \
+# Install dependencies (using Tsinghua mirror for speed)
+RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y \
     build-essential \
     g++ \
     cmake \
@@ -13,23 +24,18 @@ RUN apt-get update && apt-get install -y \
     wget \
     curl \
     vim \
-    # Boost
+    sudo \
+    htop \
+    net-tools \
     libboost-all-dev \
-    # OpenSSL
     libssl-dev \
-    # JSON (nlohmann/json)
     nlohmann-json3-dev \
-    # MySQL
     libmysqlcppconn-dev \
     mysql-client \
     libmysqlclient-dev \
-    # OpenCV
     libopencv-dev \
-    # RabbitMQ
     librabbitmq-dev \
-    # CURL
     libcurl4-openssl-dev \
-    # ONNX Runtime (x64)
     && wget https://github.com/microsoft/onnxruntime/releases/download/v1.16.3/onnxruntime-linux-x64-1.16.3.tgz -O /tmp/onnxruntime.tgz \
     && tar -xzf /tmp/onnxruntime.tgz -C /usr/local \
     && cp -r /usr/local/onnxruntime-linux-x64-1.16.3/include/* /usr/local/include/ \
@@ -39,9 +45,9 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 编译安装 muduo 网络库
+# Build muduo
 WORKDIR /tmp
-RUN git clone https://github.com/chenshuo/muduo.git && \
+RUN git clone --depth 1 https://github.com/chenshuo/muduo.git && \
     cd muduo && \
     sed -i 's/-Werror//g' CMakeLists.txt && \
     mkdir build && cd build && \
@@ -49,26 +55,42 @@ RUN git clone https://github.com/chenshuo/muduo.git && \
     ldconfig && \
     cd /tmp && rm -rf muduo
 
-# 编译安装 SimpleAmqpClient
+# Build SimpleAmqpClient
 WORKDIR /tmp
-RUN git clone https://github.com/alanxz/SimpleAmqpClient.git && \
+RUN git clone --depth 1 https://github.com/alanxz/SimpleAmqpClient.git && \
     cd SimpleAmqpClient && \
     mkdir build && cd build && \
     cmake .. && make -j$(nproc) && make install && \
     ldconfig && \
     cd /tmp && rm -rf SimpleAmqpClient
 
-# 创建项目目录并复制代码
+#===============================================================================
+# Development image
+#===============================================================================
+FROM base AS dev
+
+WORKDIR /workspace
+CMD ["/bin/bash"]
+
+#===============================================================================
+# Production image - build and run
+#===============================================================================
+FROM base AS production
+
 WORKDIR /project
 COPY . .
 
-# 编译项目
+# Build
 RUN mkdir -p build && cd build && \
     cmake .. -DBUILD_AI_APPS=ON -DBUILD_WEB_APPS=OFF && \
     make -j$(nproc)
 
-# 暴露端口
-EXPOSE 80
+EXPOSE ${HTTP_PORT}
 
-# 运行服务器
-CMD ["./build/http_server"]
+# Run with environment variables
+CMD ["sh", "-c", "./build/http_server"]
+
+#===============================================================================
+# Default target: production
+#===============================================================================
+FROM production AS default

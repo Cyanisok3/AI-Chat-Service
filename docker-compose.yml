@@ -1,15 +1,13 @@
-version: '3.8'
-
 services:
   # MySQL 数据库服务
   mysql:
     image: mysql:8.0
     container_name: cppaiservice-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: chatserver
-      MYSQL_USER: chatuser
-      MYSQL_PASSWORD: chatpassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-123456}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-chatserver}
+      MYSQL_USER: ${MYSQL_USER:-chatuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-chatpassword}
     ports:
       - "3306:3306"
     volumes:
@@ -27,8 +25,8 @@ services:
     image: rabbitmq:3-management
     container_name: cppaiservice-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -42,11 +40,12 @@ services:
     networks:
       - app-network
 
-  # 开发服务 - Remote-Containers 使用
+  # 开发服务 - 直接进入 bash 开发
   app_dev:
     build:
       context: .
-      dockerfile: .devcontainer/Dockerfile
+      dockerfile: Dockerfile
+      target: dev
     container_name: cppaiservice-dev
     environment:
       - RABBITMQ_HOST=${RABBITMQ_HOST:-rabbitmq}
@@ -74,10 +73,15 @@ services:
         condition: service_healthy
     networks:
       - app-network
+    profiles:
+      - dev
 
-  # 生产服务 - 云端部署使用
+  # 生产服务 - 编译并运行
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
     container_name: cppaiservice
     environment:
       - RABBITMQ_HOST=${RABBITMQ_HOST:-rabbitmq}
