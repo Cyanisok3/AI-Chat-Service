@@ -46,7 +46,7 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/source
 
 # Build muduo
 WORKDIR /tmp
-RUN git clone --depth 1 https://github.com/chenshuo/muduo.git && \
+RUN git clone --depth 1 https://gh-proxy.com/github.com/chenshuo/muduo.git && \
     cd muduo && \
     sed -i 's/-Werror//g' CMakeLists.txt && \
     mkdir build && cd build && \
@@ -56,7 +56,7 @@ RUN git clone --depth 1 https://github.com/chenshuo/muduo.git && \
 
 # Build SimpleAmqpClient
 WORKDIR /tmp
-RUN git clone --depth 1 https://github.com/alanxz/SimpleAmqpClient.git && \
+RUN git clone --depth 1 https://gh-proxy.com/github.com/alanxz/SimpleAmqpClient.git && \
     cd SimpleAmqpClient && \
     mkdir build && cd build && \
     cmake .. && make -j$(nproc) && make install && \
