@@ -6,11 +6,8 @@ void ChatEntryHandler::handle(const http::HttpRequest& req, http::HttpResponse* 
 {
     // 因为是get请求，请求的url也拿到了，我们就可以直接返回响应了
 
-    //这里先是通过字符串传入一个路径
-    //然后将对应的路径下的文件通过FileUtil进行打开，
-    //最后将这部分数据赋值给这个string buffer，并进行返回响应
-    std::string reqFile;
-    reqFile.append("../AIApps/ChatServer/resource/entry.html");
+    // 绝对路径
+    std::string reqFile = "/project/AIApps/ChatServer/resource/entry.html";
     FileUtil fileOperater(reqFile);
     if (!fileOperater.isValid())
     {
