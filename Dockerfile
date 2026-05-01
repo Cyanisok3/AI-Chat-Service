@@ -36,12 +36,11 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/source
     libopencv-dev \
     librabbitmq-dev \
     libcurl4-openssl-dev \
-    && wget https://github.com/microsoft/onnxruntime/releases/download/v1.16.3/onnxruntime-linux-x64-1.16.3.tgz -O /tmp/onnxruntime.tgz \
-    && tar -xzf /tmp/onnxruntime.tgz -C /usr/local \
-    && cp -r /usr/local/onnxruntime-linux-x64-1.16.3/include/* /usr/local/include/ \
-    && cp /usr/local/onnxruntime-linux-x64-1.16.3/lib/* /usr/local/lib/ \
-    && rm -rf /usr/local/onnxruntime-linux-x64-1.16.3 \
-    && rm /tmp/onnxruntime.tgz \
+    && (wget --timeout=60 --tries=3 -O /tmp/onnxruntime.tgz https://github.com/microsoft/onnxruntime/releases/download/v1.16.3/onnxruntime-linux-x64-1.16.3.tgz || \
+        wget --timeout=60 --tries=3 -O /tmp/onnxruntime.tgz https://gh-proxy.com/github.com/microsoft/onnxruntime/releases/download/v1.16.3/onnxruntime-linux-x64-1.16.3.tgz || true) \
+    && tar -xzf /tmp/onnxruntime.tgz -C /usr/local 2>/dev/null || true \
+    && (test -d /usr/local/onnxruntime-linux-x64-1.16.3 && cp -r /usr/local/onnxruntime-linux-x64-1.16.3/include/* /usr/local/include/ 2>/dev/null && cp /usr/local/onnxruntime-linux-x64-1.16.3/lib/* /usr/local/lib/ 2>/dev/null && rm -rf /usr/local/onnxruntime-linux-x64-1.16.3 || true) \
+    && rm -f /tmp/onnxruntime.tgz \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
