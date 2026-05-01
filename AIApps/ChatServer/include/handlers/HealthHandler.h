@@ -1,6 +1,5 @@
 #pragma once
-#include "../../../HttpServer/include/http/HttpRequest.h"
-#include "../../../HttpServer/include/http/HttpResponse.h"
+#include "../../../../HttpServer/include/router/RouterHandler.h"
 
 class HealthHandler : public http::router::RouterHandler
 {
