@@ -9,6 +9,7 @@
 #include"../include/handlers/AIUploadHandler.h"
 #include"../include/handlers/ChatHistoryHandler.h"
 
+#include "../include/handlers/HealthHandler.h"
 #include "../include/ChatServer.h"
 #include "../../../HttpServer/include/http/HttpRequest.h"
 #include "../../../HttpServer/include/http/HttpResponse.h"
@@ -151,7 +152,8 @@ void ChatServer::initializeRouter() {
     httpServer_.Post("/upload/send", std::make_shared<AIUploadSendHandler>(this));
     //???????????????????????????????????????
     httpServer_.Post("/chat/history", std::make_shared<ChatHistoryHandler>(this));
-
+    // health
+    httpServer_.Get("/health", std::make_shared<HealthHandler>());
 
 }
 
