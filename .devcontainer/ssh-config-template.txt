@@ -1,0 +1,25 @@
+# SSH 配置
+# ============
+
+# 连接到远程服务器 1.117.17.30
+Host cpp-server
+    HostName 1.117.17.30
+    User ubuntu
+    Port 22
+    PreferredAuthentications password
+    PubkeyAuthentication no
+
+# ==========================================
+# 常用命令：
+#
+# 测试连接：
+#   ssh cpp-server
+#
+# 然后会提示输入密码
+#
+# 在 Cursor 中连接：
+#   1. Cmd+Shift+P 打开命令面板
+#   2. 输入 "Remote-SSH: Connect to Host"
+#   3. 选择 "cpp-server"
+#   4. 输入密码 ubuntu 的密码
+# ==========================================
