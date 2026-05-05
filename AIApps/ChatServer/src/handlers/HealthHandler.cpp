@@ -6,5 +6,6 @@ void HealthHandler::handle(const http::HttpRequest& req, http::HttpResponse* res
     resp->setCloseConnection(false);
     resp->setContentType("application/json");
     std::string body = "{\"status\":\"ok\"}";
+    resp->setContentLength(body.size());
     resp->setBody(body);
 }

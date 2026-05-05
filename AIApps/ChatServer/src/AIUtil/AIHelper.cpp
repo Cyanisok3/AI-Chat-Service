@@ -1,7 +1,8 @@
-#include"../include/AIUtil/AIHelper.h"
-#include"../include/AIUtil/MQManager.h"
+#include "../../include/AIUtil/AIHelper.h"
+#include "../../include/AIUtil/MQManager.h"
 #include <stdexcept>
 #include<chrono>
+#include <muduo/base/Logging.h>
 
 // 构造函数
 AIHelper::AIHelper(const std::string& apiKey)
@@ -50,20 +51,37 @@ std::string AIHelper::chat(int userId,std::string userName) {
 
     payload["messages"] = msgArray;
 
-    // 打印 payload（缩进 4 个空格）
-    std::cout << "[DEBUG] payload = " << payload.dump(4) << std::endl;
-
     // 执行请求
     json response = executeCurl(payload);
 
-    if (response.contains("choices") && !response["choices"].empty()) {
-        std::string answer = response["choices"][0]["message"]["content"];
-        // 保存 AI 回复
-        addMessage(userId,userName, false,answer);
-        return answer;
+    // 检查是否有错误响应
+    if (response.contains("error")) {
+        std::string errorMsg = "[Error] ";
+        if (response["error"].contains("message")) {
+            errorMsg += response["error"]["message"].get<std::string>();
+        } else {
+            errorMsg += response["error"].dump();
+        }
+        LOG_ERROR << "AI API Error: " << errorMsg;
+        return errorMsg;
     }
 
-    return "[Error] 无法解析响应";
+    // 检查choices是否存在且不为空
+    if (!response.contains("choices") || response["choices"].empty()) {
+        LOG_ERROR << "AI API response missing or empty choices: " << response.dump();
+        return "[Error] AI API响应格式错误";
+    }
+
+    // 检查choices[0]和message是否存在
+    if (!response["choices"][0].contains("message") || !response["choices"][0]["message"].contains("content")) {
+        LOG_ERROR << "AI API response missing message content: " << response.dump();
+        return "[Error] AI响应内容缺失";
+    }
+
+    std::string answer = response["choices"][0]["message"]["content"];
+    // 保存 AI 回复
+    addMessage(userId, userName, false, answer);
+    return answer;
 }
 
 // 发送自定义请求体
@@ -91,19 +109,32 @@ json AIHelper::executeCurl(const json& payload) {
     headers = curl_slist_append(headers, "Content-Type: application/json");
 
     std::string payloadStr = payload.dump();
-    std::cout << "test json->payloadStr " << payloadStr << std::endl;
     curl_easy_setopt(curl, CURLOPT_URL, apiUrl_.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payloadStr.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
+    // 设置超时时间（60秒）
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+
     CURLcode res = curl_easy_perform(curl);
+
+    // 获取HTTP响应码
+    long httpCode = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
+
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
 
     if (res != CURLE_OK) {
         throw std::runtime_error("curl_easy_perform() failed: " + std::string(curl_easy_strerror(res)));
+    }
+
+    // 检查HTTP状态码
+    if (httpCode != 200) {
+        LOG_ERROR << "AI API HTTP error, code: " << httpCode << ", response: " << readBuffer;
     }
 
     try {

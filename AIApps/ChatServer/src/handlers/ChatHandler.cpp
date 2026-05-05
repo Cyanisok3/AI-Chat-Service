@@ -27,7 +27,7 @@ void ChatHandler::handle(const http::HttpRequest& req, http::HttpResponse* resp)
         int userId = std::stoi(session->getValue("userId"));
         std::string username = session->getValue("username");
 
-        std::string reqFile("../AIApps/ChatServer/resource/AI.html");
+        std::string reqFile("AIApps/ChatServer/resource/AI.html");
         FileUtil fileOperater(reqFile);
         if (!fileOperater.isValid())
         {

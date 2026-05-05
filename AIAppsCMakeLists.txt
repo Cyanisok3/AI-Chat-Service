@@ -20,14 +20,7 @@ include_directories(
     ${OPENSSL_INCLUDE_DIR}
     ${CURL_INCLUDE_DIRS}
     /usr/include/opencv4          # OpenCV
-    /usr/local/include  # ONNX Runtime
-)
-
-# 查找 ONNX Runtime（可选）
-find_library(ONNXRUNTIME_LIBRARY
-    NAMES onnxruntime
-    PATHS /usr/local/lib
-    RESULT_VARIABLE ONNXRUNTIME_FOUND
+    /usr/local/include           # ONNX Runtime
 )
 
 # 添加源文件
@@ -61,11 +54,11 @@ target_link_libraries(http_server
     ${CURL_LIBRARIES}
     SimpleAmqpClient
     rabbitmq
-    ${ONNXRUNTIME_LIBRARY}
     opencv_core
     opencv_imgproc
     opencv_imgcodecs
     opencv_dnn
+    onnxruntime
 )
 
 # 如果库不在默认路径，添加链接目录

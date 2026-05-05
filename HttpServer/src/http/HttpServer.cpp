@@ -155,9 +155,6 @@ void HttpServer::onRequest(const muduo::net::TcpConnectionPtr &conn, const HttpR
     // 可以给response设置一个成员，判断是否请求的是文件，如果是文件设置为true，并且存在文件位置在这里send出去。
     muduo::net::Buffer buf;
     response.appendToBuffer(&buf);
-    // 打印完整的响应内容用于调试
-    LOG_INFO << "Sending response:\n" << buf.toStringPiece().as_string();
-
     conn->send(&buf);
     // 如果是短连接的话，返回响应报文后就断开连接
     if (response.closeConnection())
@@ -188,15 +185,17 @@ void HttpServer::handleRequest(const HttpRequest &req, HttpResponse *resp)
         // 处理响应后的中间件
         middlewareChain_.processAfter(*resp);
     }
-    catch (const HttpResponse& res) 
+    catch (const HttpResponse& res)
     {
         // 处理中间件抛出的响应（如CORS预检请求）
         *resp = res;
     }
-    catch (const std::exception& e) 
+    catch (const std::exception& e)
     {
         // 错误处理
+        LOG_ERROR << "EXCEPTION in handleRequest: " << e.what();
         resp->setStatusCode(HttpResponse::k500InternalServerError);
+        resp->setStatusMessage("Internal Server Error");
         resp->setBody(e.what());
     }
 }

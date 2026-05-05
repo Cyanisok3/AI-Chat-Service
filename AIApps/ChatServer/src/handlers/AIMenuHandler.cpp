@@ -7,7 +7,7 @@ void AIMenuHandler::handle(const http::HttpRequest& req, http::HttpResponse* res
     {
         // 检查用户是否已登录
         auto session = server_->getSessionManager()->getSession(req, resp);
-        LOG_INFO << "session->getValue(\"isLoggedIn\") = " << session->getValue("isLoggedIn");
+
         if (session->getValue("isLoggedIn") != "true")
         {
             // 用户未登录，返回未授权错误
@@ -26,7 +26,7 @@ void AIMenuHandler::handle(const http::HttpRequest& req, http::HttpResponse* res
         int userId = std::stoi(session->getValue("userId"));
         std::string username = session->getValue("username");
 
-        std::string reqFile("../AIApps/ChatServer/resource/menu.html");
+        std::string reqFile("AIApps/ChatServer/resource/menu.html");
         FileUtil fileOperater(reqFile);
         if (!fileOperater.isValid())
         {
@@ -35,7 +35,7 @@ void AIMenuHandler::handle(const http::HttpRequest& req, http::HttpResponse* res
         }
 
         std::vector<char> buffer(fileOperater.size());
-        fileOperater.readFile(buffer); // 读出文件数据
+        fileOperater.readFile(buffer);
         std::string htmlContent(buffer.data(), buffer.size());
 
         // 在HTML内容中插入userId
@@ -46,8 +46,6 @@ void AIMenuHandler::handle(const http::HttpRequest& req, http::HttpResponse* res
             htmlContent.insert(headEnd, script);
         }
 
-        // server_->packageResp(req.getVersion(), HttpResponse::k200Ok, "OK"
-        //             , false, "text/html", htmlContent.size(), htmlContent, resp);
         resp->setStatusLine(req.getVersion(), http::HttpResponse::k200Ok, "OK");
         resp->setCloseConnection(false);
         resp->setContentType("text/html");

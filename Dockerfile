@@ -36,11 +36,6 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/source
     libopencv-dev \
     librabbitmq-dev \
     libcurl4-openssl-dev \
-    && (wget --timeout=60 --tries=3 -O /tmp/onnxruntime.tgz https://github.com/microsoft/onnxruntime/releases/download/v1.16.3/onnxruntime-linux-x64-1.16.3.tgz || \
-        wget --timeout=60 --tries=3 -O /tmp/onnxruntime.tgz https://gh-proxy.com/github.com/microsoft/onnxruntime/releases/download/v1.16.3/onnxruntime-linux-x64-1.16.3.tgz || true) \
-    && tar -xzf /tmp/onnxruntime.tgz -C /usr/local 2>/dev/null || true \
-    && (test -d /usr/local/onnxruntime-linux-x64-1.16.3 && cp -r /usr/local/onnxruntime-linux-x64-1.16.3/include/* /usr/local/include/ 2>/dev/null && cp /usr/local/onnxruntime-linux-x64-1.16.3/lib/* /usr/local/lib/ 2>/dev/null && rm -rf /usr/local/onnxruntime-linux-x64-1.16.3 || true) \
-    && rm -f /tmp/onnxruntime.tgz \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -54,6 +49,21 @@ RUN git clone --depth 1 https://gh-proxy.com/github.com/chenshuo/muduo.git && \
     ldconfig && \
     cd /tmp && rm -rf muduo
 
+# Install ONNX Runtime
+WORKDIR /tmp
+RUN apt-get update && apt-get install -y file && \
+    if file /lib/systemd/systemd 2>/dev/null | grep -q aarch64 || uname -m | grep -q aarch64; then \
+        ONNX_PKG="onnxruntime-linux-aarch64-1.16.3.tgz"; \
+    else \
+        ONNX_PKG="onnxruntime-linux-x64-1.16.3.tgz"; \
+    fi && \
+    wget -q "https://github.com/microsoft/onnxruntime/releases/download/v1.16.3/${ONNX_PKG}" && \
+    mkdir -p onnxruntime && tar -xzf "${ONNX_PKG}" -C onnxruntime --strip-components=1 && \
+    cp -r onnxruntime/include/* /usr/local/include/ && \
+    cp onnxruntime/lib/* /usr/local/lib/ && \
+    ldconfig && \
+    rm -rf onnxruntime "${ONNX_PKG}"
+
 # Build SimpleAmqpClient
 WORKDIR /tmp
 RUN git clone --depth 1 https://gh-proxy.com/github.com/alanxz/SimpleAmqpClient.git && \
@@ -62,6 +72,12 @@ RUN git clone --depth 1 https://gh-proxy.com/github.com/alanxz/SimpleAmqpClient.
     cmake .. && make -j$(nproc) && make install && \
     ldconfig && \
     cd /tmp && rm -rf SimpleAmqpClient
+
+# Download MobileNetV2 ONNX model and ImageNet labels
+WORKDIR /root
+RUN mkdir -p models/mobilenetv2 && \
+    wget -q https://github.com/onnx/models/raw/main/validated/vision/classification/mobilenet/model/mobilenetv2-7.onnx -O models/mobilenetv2/mobilenetv2-7.onnx && \
+    wget -q https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt -O /root/imagenet_classes.txt
 
 #===============================================================================
 # Development image
@@ -80,8 +96,8 @@ WORKDIR /project
 COPY . .
 
 # Build
-RUN mkdir -p build && cd build && \
-    cmake .. -DBUILD_AI_APPS=ON -DBUILD_WEB_APPS=OFF && \
+RUN rm -rf build && mkdir -p build && cd build && \
+    cmake .. -DBUILD_AI_APPS=ON && \
     make -j$(nproc)
 
 EXPOSE ${HTTP_PORT}
